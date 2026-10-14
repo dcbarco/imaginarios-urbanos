@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f1ea">
+  <meta name="description" content="Realidad aumentada web: cuatro lugares de Manizales suspendidos en el aire, en su dirección real, desde la terraza del Centro Cultural Rogelio Salmona.">
+  <title>Cuatro Puntos</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">{ "imports": { "three": "./vendor/three.module.min.js" } }</script>
+  <link rel="modulepreload" href="js/main.js">
+</head>
+<body>
+  <main id="welcome" class="welcome">
+    <div class="welcome-inner">
+      <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+        <circle cx="32" cy="32" r="24" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".35"/>
+        <circle cx="32" cy="8" r="4"/><circle cx="56" cy="32" r="4"/><circle cx="32" cy="56" r="4"/><circle cx="8" cy="32" r="4"/>
+        <circle cx="32" cy="32" r="2.5" opacity=".6"/>
+      </svg>
+      <h1>Cuatro Puntos</h1>
+      <p class="lead">Gira sobre ti mismo y descubre cuatro lugares de Manizales suspendidos en el aire, justo en su dirección real.</p>
+      <p class="hint">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 18.5h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Sostén el celular en vertical
+      </p>
+      <button id="start-btn" class="btn btn-primary btn-start" type="button">Comenzar</button>
+      <p id="welcome-msg" class="notice" role="alert" hidden></p>
+      <div id="inapp-banner" class="notice notice-warn" hidden>
+        <p>Este navegador integrado suele bloquear la cámara y la brújula. <strong>Ábrelo en Safari o Chrome.</strong></p>
+        <button id="copy-link" class="btn btn-small" type="button">Copiar enlace</button>
+      </div>
+    </div>
+  </main>
+
+  <div id="ar" class="ar" hidden>
+    <div class="sky" aria-hidden="true"></div>
+    <video id="cam" playsinline muted autoplay aria-hidden="true"></video>
+    <div class="cam-dim" aria-hidden="true"></div>
+    <canvas id="gl" aria-label="Vista de realidad aumentada"></canvas>
+    <div id="labels" class="labels" aria-hidden="true"></div>
+
+    <svg id="reticle" class="reticle" viewBox="0 0 80 80" aria-hidden="true" hidden>
+      <circle cx="40" cy="40" r="22" fill="none" stroke="#000" stroke-opacity=".45" stroke-width="5"/>
+      <circle cx="40" cy="40" r="22" fill="none" stroke="#fff" stroke-width="2.5"/>
+      <path d="M40 4v22M40 54v22M4 40h22M54 40h22" stroke="#000" stroke-opacity=".45" stroke-width="5" stroke-linecap="round"/>
+      <path d="M40 4v22M40 54v22M4 40h22M54 40h22" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="40" cy="40" r="2.5" fill="#ffd166"/>
+    </svg>
+
+    <header class="compass" aria-label="Brújula">
+      <canvas id="compass-tape"></canvas>
+      <div class="compass-readout"><span id="heading-deg">0°</span> <span id="heading-card">N</span></div>
+    </header>
+
+    <div id="edge-left" class="edge edge-left" hidden><span class="edge-arrow">‹</span><span class="edge-name"></span></div>
+    <div id="edge-right" class="edge edge-right" hidden><span class="edge-name"></span><span class="edge-arrow">›</span></div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <div id="status-card" class="status-card" role="alert" hidden></div>
+
+    <nav class="actions" aria-label="Controles">
+      <button id="btn-help" class="btn btn-round" type="button" aria-label="Ayuda">?</button>
+      <button id="btn-compass" class="btn btn-pill btn-status" type="button" data-quality="good" hidden>
+        <span class="dot" aria-hidden="true"></span><span id="compass-label">Brújula</span>
+      </button>
+      <button id="btn-align" class="btn btn-pill" type="button">Alinear</button>
+      <button id="btn-contrast" class="btn btn-round" type="button" aria-label="Contraste de las imágenes">◐</button>
+    </nav>
+
+    <!-- Asistente de calibración: 1) brújula, 2) comprobar dirección con la mira -->
+    <section id="guide" class="guide" hidden aria-live="polite" aria-labelledby="guide-title">
+      <ol class="guide-steps" aria-hidden="true">
+        <li data-step="calibrate">Brújula</li>
+        <li data-step="verify">Dirección</li>
+      </ol>
+
+      <div id="guide-calibrate" class="guide-body" hidden>
+        <svg class="eight" viewBox="0 0 200 110" aria-hidden="true">
+          <path id="eight-path" d="M100 55 C 130 15, 180 15, 180 55 S 130 95, 100 55 S 20 15, 20 55 S 70 95, 100 55 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 6" opacity=".5"/>
+          <g><rect x="-8" y="-14" width="16" height="28" rx="3" fill="currentColor"/><rect x="-5" y="-10" width="10" height="17" rx="1" fill="#1f3d2e" opacity=".5"/>
+            <animateMotion dur="2.6s" repeatCount="indefinite" rotate="auto"><mpath href="#eight-path"/></animateMotion></g>
+        </svg>
+        <h2 id="guide-title">Calibra la brújula</h2>
+        <p>Mueve el teléfono dibujando un <strong>8</strong> amplio en el aire, girando también la muñeca.</p>
+        <div class="meter" role="progressbar" aria-label="Progreso de calibración" aria-valuemin="0" aria-valuemax="100">
+          <div id="calib-bar" class="meter-bar"></div>
+        </div>
+        <p id="calib-status" class="guide-status">Empieza a mover el teléfono…</p>
+        <div class="row">
+          <button id="calib-skip" class="btn btn-ghost" type="button">Omitir</button>
+          <button id="calib-next" class="btn btn-primary" type="button" disabled>Continuar</button>
+        </div>
+      </div>
+
+      <div id="guide-verify" class="guide-body" hidden>
+        <h2>Comprueba la dirección</h2>
+        <p id="verify-mandatory" class="notice notice-warn" hidden>Tu teléfono no entrega el norte de la brújula: alinea con la mira para ver las imágenes.</p>
+        <p>Apunta la <strong>mira</strong> al <strong id="verify-place"></strong> real y sostén el teléfono quieto.</p>
+        <p id="verify-offset" class="verify-offset"></p>
+        <div id="verify-fine" class="fine" hidden>
+          <button id="fine-left" class="btn" type="button" aria-label="Mover imágenes 1 grado a la izquierda">◀ 1°</button>
+          <span class="fine-value">Corrección <strong id="fine-value">0,0°</strong></span>
+          <button id="fine-right" class="btn" type="button" aria-label="Mover imágenes 1 grado a la derecha">1° ▶</button>
+        </div>
+        <div class="row">
+          <button id="verify-align" class="btn" type="button">Alinear con la mira</button>
+          <button id="verify-ok" class="btn btn-primary" type="button">Coincide ✓</button>
+        </div>
+        <div class="row row-small">
+          <label class="inline-field">Referencia <select id="verify-point"></select></label>
+          <button id="verify-reset" class="btn btn-ghost btn-small" type="button">Restablecer</button>
+          <button id="verify-skip" class="btn btn-ghost btn-small" type="button">Omitir</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="help-panel" class="sheet" hidden aria-labelledby="help-title">
+      <h2 id="help-title">Cómo usarlo</h2>
+      <ul>
+        <li>Sostén el celular en vertical y gira despacio sobre ti mismo.</li>
+        <li>Las flechas en los bordes te indican hacia dónde está el punto más cercano.</li>
+        <li>Si una imagen no coincide con su lugar, usa <strong>Alinear</strong>.</li>
+        <li>Si cuesta ver las imágenes, toca <strong>◐</strong> para cambiar el contraste.</li>
+        <li>Aléjate de barandas metálicas, parlantes y otros celulares: alteran la brújula.</li>
+      </ul>
+      <p id="help-ios" class="small" hidden>¿Sin movimiento? En iPhone: <strong>Ajustes → Safari → Movimiento y orientación</strong> (actívalo) y recarga la página.</p>
+      <p class="small">Sensor: <span id="help-source">—</span></p>
+      <div class="row">
+        <button id="help-calibrate" class="btn" type="button">Calibrar brújula</button>
+        <button id="help-close" class="btn btn-primary" type="button">Entendido</button>
+      </div>
+    </section>
+
+    <aside id="debug" class="debug" hidden></aside>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

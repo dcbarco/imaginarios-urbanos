@@ -1,0 +1,23 @@
+{
+  "name": "cuatro-puntos",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Realidad aumentada web geolocalizada — Terraza Centro Cultural Universitario Rogelio Salmona, Manizales",
+  "scripts": {
+    "lan": "node tools/serve-lan.mjs",
+    "vendor": "node tools/vendor-three.mjs",
+    "test": "node tools/test-geo.mjs",
+    "qr": "node tools/make-qr.mjs",
+    "dev": "npx wrangler pages dev public",
+    "deploy": "npx wrangler pages deploy public --project-name cuatro-puntos"
+  },
+  "dependencies": {
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "qrcode": "^1.5.4",
+    "selfsigned": "^5.5.0"
+  }
+}
