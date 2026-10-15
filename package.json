@@ -16,6 +16,7 @@
     "three": "^0.186.1"
   },
   "devDependencies": {
+    "@fontsource/montserrat": "^5.3.0",
     "esbuild": "^0.28.2",
     "qrcode": "^1.5.4",
     "selfsigned": "^5.5.0"

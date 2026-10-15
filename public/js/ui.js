@@ -162,7 +162,7 @@ export class Ui {
       const px = x(deg);
       const major = deg % 45 === 0;
       const mid = deg % 15 === 0;
-      ctx.strokeStyle = "rgba(247,245,239,0.75)";
+      ctx.strokeStyle = "rgba(255,255,255,0.75)";
       ctx.lineWidth = major ? 2 : 1;
       ctx.beginPath();
       ctx.moveTo(px, h);
@@ -170,17 +170,17 @@ export class Ui {
       ctx.stroke();
       if (major) {
         const name = cardinalName(deg);
-        ctx.font = `${name === "N" ? 800 : 700} 11px system-ui, sans-serif`;
-        ctx.fillStyle = name === "N" ? "#ff8a7a" : "rgba(247,245,239,0.9)";
+        ctx.font = `800 11px Montserrat, system-ui, sans-serif`;
+        ctx.fillStyle = name === "N" ? "#ff8a5c" : "rgba(255,255,255,0.9)";
         ctx.fillText(name, px, 8);
       }
     }
 
-    ctx.font = "600 10px system-ui, sans-serif";
+    ctx.font = "600 10px Montserrat, system-ui, sans-serif";
     for (const t of this.targets) {
       const px = x(t.displayBearing);
       if (px < -40 || px > w + 40) continue;
-      ctx.fillStyle = "#ffd166";
+      ctx.fillStyle = "#ff8a5c";
       ctx.beginPath();
       ctx.moveTo(px, h - 14);
       ctx.lineTo(px - 5, h - 22);
